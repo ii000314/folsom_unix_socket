@@ -34,12 +34,12 @@ make_resp(Val) when is_binary(Val) ->
   Val;
 make_resp(Val) when is_integer(Val) ->
   list_to_binary(integer_to_list(Val));
-make_resp({error, _, nonexistent_metric}) ->
-  <<"0">>;
-make_resp(undefined) ->
-  <<"0">>;
+make_resp([_, {one, Val} | _]) ->
+  list_to_binary(integer_to_list(round(Val)));
 make_resp(Val) when is_list(Val) ->
   list_to_binary(Val);
+make_resp({error, _, nonexistent_metric}) ->
+  <<"0">>;
 make_resp(_) ->
   <<"0">>.
 
