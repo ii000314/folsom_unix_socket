@@ -41,6 +41,7 @@ init([]) ->
   {ok, Poll} = inert:start(),
   ok = procket:bind(Socket, SockPath),
   ok = procket:listen(Socket, ?BACKLOG),
+  file:change_mode(SockPath, 8#00666),
   State = #st{sock=Socket, poll=Poll},
   SelfPid = self(),
   spawn_link(gen_unix, accept_loop, [Socket, SelfPid, Poll]),
