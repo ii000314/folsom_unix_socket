@@ -37,11 +37,11 @@ accept_loop(LSock, BackPid, Poll) ->
 init([]) ->
   process_flag(trap_exit, true),
   SockPath = get_path(),
+  file:change_mode(file_name:dir_name(SockPath), 8#00777),
   {ok, Socket} = procket:socket(?PF_LOCAL, ?SOCK_STREAM, 0),
   {ok, Poll} = inert:start(),
   ok = procket:bind(Socket, SockPath),
   ok = procket:listen(Socket, ?BACKLOG),
-  file:change_mode(SockPath, 8#00666),
   State = #st{sock=Socket, poll=Poll},
   SelfPid = self(),
   spawn_link(gen_unix, accept_loop, [Socket, SelfPid, Poll]),
