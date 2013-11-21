@@ -20,9 +20,10 @@ get_path() ->
                              <<"/tmp/monitoring.sock">>),
   file:delete(Path),
   Len = byte_size(Path),
-  <<(procket:sockaddr_common(?PF_LOCAL, Len))/binary,
-    Path/binary,
-    0:((procket:unix_path_max()-Len)*8)>>.
+  {<<(procket:sockaddr_common(?PF_LOCAL, Len))/binary,
+     Path/binary,
+     0:((procket:unix_path_max()-Len)*8)>>,
+   Path}.
 
 accept_loop(LSock, BackPid, Poll) ->
   inert:poll(Poll, LSock, []),
@@ -36,8 +37,7 @@ accept_loop(LSock, BackPid, Poll) ->
 
 init([]) ->
   process_flag(trap_exit, true),
-  SockPath = get_path(),
-  file:change_mode(filename:dirname(SockPath), 8#00777),
+  {SockPath, SockName} = get_path(),
   {ok, Socket} = procket:socket(?PF_LOCAL, ?SOCK_STREAM, 0),
   {ok, Poll} = inert:start(),
   ok = procket:bind(Socket, SockPath),
@@ -45,6 +45,7 @@ init([]) ->
   State = #st{sock=Socket, poll=Poll},
   SelfPid = self(),
   spawn_link(gen_unix, accept_loop, [Socket, SelfPid, Poll]),
+  file:change_mode(SockName, 8#00666),
   {ok, State}.
 
 handle_call(Req, _From, State) ->
