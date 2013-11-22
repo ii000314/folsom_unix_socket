@@ -35,7 +35,7 @@ make_resp(Val) when is_binary(Val) ->
 make_resp(Val) when is_integer(Val) ->
   list_to_binary(integer_to_list(Val));
 make_resp([_, {one, Val} | _]) ->
-  list_to_binary(integer_to_list(round(Val)));
+  list_to_binary(integer_to_list(Val));
 make_resp(Val) when is_list(Val) ->
   list_to_binary(Val);
 make_resp({error, _, nonexistent_metric}) ->
