@@ -1,7 +1,7 @@
 {application, folsom_unix,
  [
   {description, "Unix socket API for folsom"},
-  {vsn, "1"},
+  {vsn, "1.1"},
   {registered, []},
   {applications, [
                   kernel,
