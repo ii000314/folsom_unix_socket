@@ -12,3 +12,19 @@ Require netcat for work.
 2. Setup your monitoring socket path in application vaiable *monitoring_socket*
 
 Note: default path is /tmp/monitoring.sock
+
+Basic setup zabbix callback
+---------------------------
+
+```
+>> cat ~/monitoring/check.sh
+
+# resetup via [{folsom_unix, [{monitoring_socker, "/custom/path"}]}]
+MONITORING_SOCKET=/tmp/monitoring.sock
+
+test -S $MONITORING_SOCKET && echo -n $@ | nc -U $MONITORING_SOCKET || echo 0
+
+>> cat /etc/zabbix/conf.d/myapp.conf
+UserParameter=myapp.running,/home/myapp/monitoring/check.sh running | head -n 1
+
+```
