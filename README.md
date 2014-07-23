@@ -42,6 +42,21 @@ If hacking package:
 >> rebar compile && erl -pa ebin -pa deps/*/ebin -s dev
 ```
 
+**dev.erl** shold start following applications: lager, folsom, folsom_unix.
+
+Example:
+
+```erlang
+-module(dev).
+-export(start/0).
+
+start() ->
+  lager:start(),
+  folsom:start(),
+  application:start(folsom_unix),
+  ok.
+```
+
 When testing integration with your application:
 
 ```
