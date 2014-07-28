@@ -98,10 +98,6 @@ make_resp([_, {one, Val} | _]) when is_float(Val) ->
   erlang:list_to_binary(float_to_list(Val, [{decimals, 5}]));
 make_resp([_, {one, Val} | _ ]) when is_integer(Val) ->
   list_to_binary(integer_to_list(Val));
-make_resp([_, {one, Val} | _]) ->
-  case is_float(Val) of
-    true -> erlang:list_to_binary(float_to_list(Val, [{decimals, 5}]));
-    false -> erlang:list_to_binary(Val, [{decimals, 5}]) end;
 make_resp(Val) when is_list(Val) ->
   list_to_binary(Val);
 make_resp({error, Metric, nonexistent_metric}) ->
