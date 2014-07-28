@@ -11,7 +11,7 @@
 
 -include_lib("procket/include/procket.hrl").
 -record(st, {sock, poll}).
--vsn("1.1").
+-vsn("1.1.1").
 
 start_link() ->
    gen_server:start_link(?MODULE, [], []).
