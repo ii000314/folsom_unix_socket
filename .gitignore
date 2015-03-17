@@ -1,6 +1,6 @@
 .eunit
+.rebar
 deps
-*.o
-*.beam
-*.plt
+ebin
+log
 erl_crash.dump
