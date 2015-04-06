@@ -62,32 +62,38 @@ handle_cast(Req, State) ->
   {noreply, State}.
 
 handle_info({ready, Sock}, #st{poll=Poll}=State) ->
-  inert:poll(Poll, Sock, [{timeout, 250}]),
-  case procket:recv(Sock, 1024) of
-    {ok, Req} ->
-      Val = case binary:split(Req, <<" ">>, [global]) of
-                [Name] -> folsom_metrics:get_metric_value(Name);
-                [Name, <<"stat">>, Param] ->
-                    Stat = lists:map(fun({K, V}) -> {list_to_binary(atom_to_list(K)), V} end,
-                                     folsom_metrics:get_histogram_statistics(Name)),
-                    proplists:get_value(Param, Stat, 0.0);
-                _ -> lager:error("folsom_unix, invalid request ~p", [Req]),
-                     0
-            end,
-      Resp = make_resp(Val),
-      lager:debug("folsom_unix, req~p resp:~p", [Req, Resp]),
-      procket:write(Sock, Resp),
-      procket:close(Sock);
-    {error,eagain} ->
-      self() ! {ready, Sock};
-    Error ->
-      lager:error("folsom_unix, error during read from unix socket: ~p", [Error]),
-      procket:write(Sock, <<"-1">>) end,
-  {noreply, State};
+    inert:poll(Poll, Sock, [{timeout, 250}]),
+    case procket:recv(Sock, 1024) of
+        {ok, Req} ->
+            Val = try
+                      case binary:split(Req, <<" ">>, [global]) of
+                          [Name] -> folsom_metrics:get_metric_value(Name);
+                          [Name, <<"stat">>, Param] ->
+                              Stat = lists:map(fun({K, V}) -> {list_to_binary(atom_to_list(K)), V} end,
+                                               folsom_metrics:get_histogram_statistics(Name)),
+                              proplists:get_value(Param, Stat, 0.0);
+                          _ -> lager:error("folsom_unix, invalid request ~p", [Req]),
+                               0
+                      end
+                  catch
+                      _:E -> lager:error("folsom_unix, invalid request ~p ~p ~p",
+                                         [Req, E, erlang:get_stacktrace()]),
+                             0
+                  end,
+            Resp = make_resp(Val),
+            lager:info("folsom_unix, req~p resp:~p", [Req, Resp]),
+            procket:write(Sock, Resp),
+            procket:close(Sock);
+        {error,eagain} ->
+            self() ! {ready, Sock};
+        Error ->
+            lager:error("folsom_unix, error during read from unix socket: ~p", [Error]),
+            procket:write(Sock, <<"-1">>) end,
+    {noreply, State};
 
 handle_info(Info, State) ->
-  lager:error("folsom_unix, unhandled info: ~p~n", [Info]),
-  {noreply, State}.
+    lager:error("folsom_unix, unhandled info: ~p~n", [Info]),
+    {noreply, State}.
 
 code_change(_OldVsn, State, _Extra) ->
   catch folsom_unix_sup:check_childs(),
