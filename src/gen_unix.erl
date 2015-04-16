@@ -52,7 +52,7 @@ init([]) ->
   {ok, State}.
 
 handle_call(Req, _From, State) ->
-  lager:error("folsom_unix, Unhandled call ~p~n", [Req]),
+  lager:error("folsom_unix, unhandled call ~p~n", [Req]),
   {reply, State}.
 
 handle_cast(stop, State) ->
@@ -81,7 +81,7 @@ handle_info({ready, Sock}, #st{poll=Poll}=State) ->
                              0
                   end,
             Resp = make_resp(Val),
-            lager:info("folsom_unix, req~p resp:~p", [Req, Resp]),
+            lager:debug("folsom_unix, req~p resp:~p", [Req, Resp]),
             procket:write(Sock, Resp),
             procket:close(Sock);
         {error,eagain} ->
